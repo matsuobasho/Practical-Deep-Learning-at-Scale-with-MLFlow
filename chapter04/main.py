@@ -35,21 +35,21 @@ def run_pipeline(steps):
 
     with mlflow.start_run(run_name='pipeline', nested=True) as active_run:
         if "download_data" in active_steps:
-            download_run = mlflow.run(".", "download_data", parameters={})
+            download_run = mlflow.run(".", "download_data", parameters={}, env_manager="local")
             download_run = mlflow.tracking.MlflowClient().get_run(download_run.run_id)
             file_path_uri = download_run.data.params['local_folder']
             logger.info('downloaded data is located locally in folder: %s', file_path_uri)
             logger.info(download_run)
 
         if "fine_tuning_model" in active_steps:
-            fine_tuning_run = mlflow.run(".", "fine_tuning_model", parameters={"data_path": file_path_uri})
+            fine_tuning_run = mlflow.run(".", "fine_tuning_model", parameters={"data_path": file_path_uri},  env_manager="local")
             fine_tuning_run_id = fine_tuning_run.run_id
             fine_tuning_run = mlflow.tracking.MlflowClient().get_run(fine_tuning_run_id)
             logger.info(fine_tuning_run)
 
         if "register_model" in active_steps:
             if fine_tuning_run_id is not None and fine_tuning_run_id != 'None':
-                register_model_run = mlflow.run(".", "register_model", parameters={"mlflow_run_id": fine_tuning_run_id})
+                register_model_run = mlflow.run(".", "register_model", parameters={"mlflow_run_id": fine_tuning_run_id}, env_manager="local")
                 register_model_run = mlflow.tracking.MlflowClient().get_run(register_model_run.run_id)
                 logger.info(register_model_run)
             else:
